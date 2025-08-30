@@ -1,4 +1,5 @@
 import { useState } from "react";
+import API from "./api";
 import "bootstrap/dist/css/bootstrap.min.css";
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import { FaSpinner, FaDownload, FaExclamationTriangle, FaCheckCircle } from "react-icons/fa";
@@ -16,11 +17,11 @@ export default function HomePage() {
   const [videoDuration, setVideoDuration] = useState("0:00");
   // Removed preparing popup per request
 
-  const formatDuration = (seconds) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-  };
+  // const formatDuration = (seconds) => {
+  //   const minutes = Math.floor(seconds / 60);
+  //   const remainingSeconds = Math.floor(seconds % 60);
+  //   return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  // };
 
   const handleFetch = async () => {
     if (!videoUrl) {
@@ -31,15 +32,17 @@ export default function HomePage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/youtube", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: videoUrl })
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // const response = await fetch("http://localhost:5000/api/youtube", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ url: videoUrl })
+      // });
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      const response = await API.post("/api/youtube", { url: videoUrl });
+      const data = response.data;
 
       setVideoTitle(data.title || "");
       setThumbnail(data.thumbnail || null);
@@ -101,15 +104,25 @@ export default function HomePage() {
     setTimeout(() => setNotification(null), 3000);
   };
 
+  // const buildDownloadUrl = (file) => {
+  //   if (file.formatId) {
+  //     // For format-specific downloads (audio or specific video format)
+  //     return `http://localhost:5000/api/download_id_get?url=${encodeURIComponent(videoUrl)}&format_id=${encodeURIComponent(file.formatId)}&filename=${encodeURIComponent(file.filenameBase)}&ext=${encodeURIComponent(file.ext)}`;
+  //   } else {
+  //     // For best quality downloads
+  //     return `http://localhost:5000/api/download_best_get?url=${encodeURIComponent(videoUrl)}&filename=${encodeURIComponent(file.filenameBase)}`;
+  //   }
+  // };
+  const BACKEND_URL = import.meta.env.VITE_API_URL; 
+
   const buildDownloadUrl = (file) => {
     if (file.formatId) {
-      // For format-specific downloads (audio or specific video format)
-      return `http://localhost:5000/api/download_id_get?url=${encodeURIComponent(videoUrl)}&format_id=${encodeURIComponent(file.formatId)}&filename=${encodeURIComponent(file.filenameBase)}&ext=${encodeURIComponent(file.ext)}`;
+      return `${BACKEND_URL}/api/download_id_get?url=${encodeURIComponent(videoUrl)}&format_id=${encodeURIComponent(file.formatId)}&filename=${encodeURIComponent(file.filenameBase)}&ext=${encodeURIComponent(file.ext)}`;
     } else {
-      // For best quality downloads
-      return `http://localhost:5000/api/download_best_get?url=${encodeURIComponent(videoUrl)}&filename=${encodeURIComponent(file.filenameBase)}`;
+      return `${BACKEND_URL}/api/download_best_get?url=${encodeURIComponent(videoUrl)}&filename=${encodeURIComponent(file.filenameBase)}`;
     }
   };
+
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -317,7 +330,7 @@ export default function HomePage() {
                             <div className="small text-muted"><span>{file.quality}</span> • <span>{file.size}</span></div>
                           </div>
                           <a
-                            href={`http://localhost:5000/api/download_id_get?url=${encodeURIComponent(videoUrl)}&format_id=${encodeURIComponent(file.formatId)}&filename=${encodeURIComponent(file.filenameBase)}&ext=${encodeURIComponent(file.ext)}`}
+                            href={buildDownloadUrl(file)}
                             className="btn btn-success"
                             onClick={() => showNotification(`Downloading ${file.type} audio...`, "info")}
                             download
@@ -347,8 +360,8 @@ export default function HomePage() {
                             <span className="fw-medium">{file.type} {file.quality}</span>
                             <div className="small text-muted"><span>{file.size}</span></div>
                           </div>
-                          <a 
-                            href={buildDownloadUrl(file)} 
+                          <a
+                            href={buildDownloadUrl(file)}
                             className="btn btn-info text-white"
                             onClick={() => showNotification(`Downloading video in ${file.quality}...`, "info")}
                             download
@@ -378,8 +391,8 @@ export default function HomePage() {
                             <span className="fw-medium">{file.type} {file.quality}</span>
                             <div className="small text-muted"><span>{file.size}</span></div>
                           </div>
-                          <a 
-                            href={buildDownloadUrl(file)} 
+                          <a
+                            href={buildDownloadUrl(file)}
                             className="btn btn-primary"
                             onClick={() => showNotification(`Downloading ${file.quality} video...`, "info")}
                             download
