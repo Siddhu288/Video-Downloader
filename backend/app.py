@@ -33,6 +33,7 @@ def api_youtube():
         'prefer_ffmpeg': True,
         'extract_flat': False,
         'retries': 5,
+        'cookiefile': 'cookies.txt', 
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
