@@ -1,7 +1,7 @@
 import Home from "./Home";
 
 function App() {
-  console.log("testing the ")
+  console.log("testing ")
   return(
     <>
     <Home/>
